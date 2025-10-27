@@ -32,23 +32,6 @@ import java.util.Set;
  */
 @Mixin(PlayerList.class)
 public class PlayerListMixin {
-    @Inject(method = "load", at = @At(value = "RETURN", shift = At.Shift.BEFORE))
-    private void fixStartingPos(ServerPlayer player, ProblemReporter problemReporter, CallbackInfoReturnable<Optional<ValueInput>> cir) {
-        if (player instanceof Dummy dummy) {
-            Vec3 pos = dummy.originalSpawn;
-            dummy.snapTo(pos.x, pos.y, pos.z, 0, 0);
-        }
-    }
-
-    @WrapOperation(method = "load", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/storage/PlayerDataStorage;load(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/util/ProblemReporter;)Ljava/util/Optional;"))
-    private Optional<ValueInput> skipLoadDummy(PlayerDataStorage playerIo, Player player, ProblemReporter problemReporter, Operation<Optional<ValueInput>> original) {
-        if (player instanceof Dummy) {
-            return Optional.empty();
-        } else {
-            return original.call(playerIo, player, problemReporter);
-        }
-    }
-
     @Inject(method = "save", at = @At(value = "HEAD"), cancellable = true)
     private void skipSaveDummy(ServerPlayer player, CallbackInfo ci) {
         if (player instanceof Dummy) {

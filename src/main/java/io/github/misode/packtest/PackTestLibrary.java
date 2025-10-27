@@ -47,9 +47,9 @@ public class PackTestLibrary implements PreparableReloadListener {
     }
 
     @Override
-    public @NotNull CompletableFuture<Void> reload(PreparationBarrier barrier, ResourceManager resources, Executor executor1, Executor executor2) {
+    public @NotNull CompletableFuture<Void> reload(SharedState sharedState, Executor executor, PreparationBarrier barrier, Executor executor2) {
         CompletableFuture<Map<ResourceLocation, CompletableFuture<PackTestFunction>>> prep = CompletableFuture.supplyAsync(
-                () -> LISTER.listMatchingResources(resources), executor1
+                () -> LISTER.listMatchingResources(sharedState.resourceManager()), executor
         ).thenComposeAsync(map -> {
             Map<ResourceLocation, CompletableFuture<PackTestFunction>> result = Maps.newHashMap();
             for(Map.Entry<ResourceLocation, Resource> entry : map.entrySet()) {

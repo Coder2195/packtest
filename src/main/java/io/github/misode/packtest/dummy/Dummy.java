@@ -17,7 +17,6 @@ import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
-import net.minecraft.server.players.GameProfileCache;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -52,18 +51,9 @@ public class Dummy extends ServerPlayer {
 
     public static Dummy create(String username, MinecraftServer server, ResourceKey<Level> dimensionId, Vec3 pos) {
         ServerLevel level = server.getLevel(dimensionId);
-        GameProfileCache.setUsesAuthentication(false);
-        GameProfile profile;
-        try {
-            var profileCache = server.getProfileCache();
-            profile = profileCache == null ? null : profileCache.get(username).orElse(null);
-        }
-        finally {
-            GameProfileCache.setUsesAuthentication(server.isDedicatedServer() && server.usesAuthentication());
-        }
-        if (profile == null) {
-            profile = new GameProfile(UUIDUtil.createOfflinePlayerUUID(username), username);
-        }
+
+        GameProfile profile = new GameProfile(UUIDUtil.createOfflinePlayerUUID(username), username);
+
         Vec3 originalSpawn = Vec3.atBottomCenterOf(BlockPos.containing(pos));
         Dummy dummy = new Dummy(server, level, profile, ClientInformation.createDefault(), originalSpawn);
         server.getPlayerList().placeNewPlayer(
@@ -80,13 +70,17 @@ public class Dummy extends ServerPlayer {
         return dummy;
     }
 
+    public MinecraftServer getServer() {
+        return this.level().getServer();
+    }
+
     public Dummy(MinecraftServer server, ServerLevel level, GameProfile profile, ClientInformation cli, Vec3 originalSpawn) {
         super(server, level, profile, cli);
         this.originalSpawn = originalSpawn;
     }
 
     public String getUsername() {
-        return this.getGameProfile().getName();
+        return this.getGameProfile().name();
     }
 
     public void leave(Component reason) {
@@ -99,7 +93,7 @@ public class Dummy extends ServerPlayer {
     }
 
     @Override
-    public void forceSetRotation(float f, float g) {
+    public void forceSetRotation(float f, boolean bl, float g, boolean bl2) {
         this.setYRot(f);
         this.setXRot(g);
         this.setOldRot();
